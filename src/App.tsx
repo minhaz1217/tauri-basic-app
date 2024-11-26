@@ -2,6 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
+import { load } from "@tauri-apps/plugin-store";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -44,6 +45,35 @@ function App() {
         <button type="submit">Greet</button>
       </form>
       <p>{greetMsg}</p>
+      <button onClick={async () => {
+        const store = await load('store.json', { autoSave: false });
+
+        // Set a value.
+        // await store.set('some-key', { value: 5 });
+
+        // Get a value.
+        const val = await store.get<{ value: number }>('some-key');
+        console.log(val); // { value: 5 }
+        setGreetMsg(val?.value.toString() ?? "");
+        await store.save();
+
+      }}>
+        Load Value
+      </button>
+      <button onClick={async () => {
+        const store = await load('store.json', { autoSave: false });
+        const val = await store.get<{ value: number }>('some-key');
+
+        if (val?.value) {
+          await store.set('some-key', { value: val?.value + 1 });
+        } else {
+          await store.set('some-key', { value: 10 });
+        }
+        setGreetMsg(val?.value.toString() ?? "");
+        await store.save();
+      }}>
+        Increase Value
+      </button>
     </main>
   );
 }
